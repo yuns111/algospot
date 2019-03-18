@@ -1,5 +1,4 @@
 import java.util.ArrayDeque;
-import java.util.Arrays;
 import java.util.Queue;
 import java.util.Scanner;
 
@@ -18,19 +17,19 @@ public class Transfer {
             for (int j = 0; j < connectNum; j++) {
                 tubePath[i][j] = sc.nextInt();
             }
-            Arrays.sort(tubePath[i]);
         }
 
 
         int startX = -1;
-        int startY = -1;
+        boolean[][] visitedTube = new boolean[tube][connectNum];
 
         for (int x = 0; x < tube; x++) {
             for (int y = 0; y < connectNum; y++) {
                 if (tubePath[x][y] == 1) {
                     startX = x;
-                    startY = y;
-                    queue.add(new Path(startX, startY));
+                    queue.add(new Path(startX, y));
+                    visitedTube[x][y] = true;
+                    break;
                 }
             }
         }
@@ -40,29 +39,36 @@ public class Transfer {
             return;
         }
 
-        boolean[] visited = new boolean[station];
-        visited[0] = true;
-
+        boolean[] seekSameNum = new boolean[station];
 
         while (!queue.isEmpty()) {
             Path beforePath = queue.remove();
 
             for (int y = 0; y < connectNum; y++) {
-                if (!visited[tubePath[beforePath.x][y]]) {
+                if (!visitedTube[beforePath.x][y]) {
                     queue.add(new Path(beforePath.x, y, beforePath.cnt + 1));
-                    visited[tubePath[beforePath.x][y]] = true;
+                    visitedTube[beforePath.x][y] = true;
 
-                    if(visited[station-1]) {
+                    if (tubePath[beforePath.x][y] == station) {
                         System.out.println(beforePath.cnt + 1);
                         return;
                     }
                 }
             }
 
-            for (int x = 0; x < connectNum; x++) {
-                if (!visited[tubePath[x][beforePath.y]]) {
-                    queue.add(new Path(x, beforePath.y, beforePath.cnt));
-                    visited[tubePath[x][beforePath.y]] = true;
+            if (!seekSameNum[tubePath[beforePath.x][beforePath.y] - 1]) {
+                for (int x = 0; x < tube; x++) {
+                    for (int y = 0; y < connectNum; y++) {
+                        if (beforePath.x == x && beforePath.y == y) {
+                            continue;
+                        }
+
+                        if (tubePath[x][y] == tubePath[beforePath.x][beforePath.y] && !visitedTube[x][y]) {
+                            queue.add(new Path(x, y, beforePath.cnt));
+                            visitedTube[x][y] = true;
+                            seekSameNum[tubePath[x][y] - 1] = true;
+                        }
+                    }
                 }
             }
         }
